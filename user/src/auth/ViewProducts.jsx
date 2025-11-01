@@ -499,21 +499,6 @@ export default function ViewAllProducts() {
                   ))}
                 </div>
               </div>
-
-              {/* In Stock Filter */}
-              <div className="mb-6">
-                <label className="flex items-center cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={filters.inStock}
-                    onChange={() => setFilters(prev => ({ ...prev, inStock: !prev.inStock }))}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900 font-medium">
-                    In Stock Only
-                  </span>
-                </label>
-              </div>
             </div>
           </div>
 

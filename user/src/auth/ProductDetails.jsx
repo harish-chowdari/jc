@@ -182,7 +182,7 @@ export default function ProductDetailsPage() {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center text-sm text-gray-600">
-            <a href="/" className="hover:text-blue-600">
+            <a href="/home" className="hover:text-blue-600">
               Home
             </a>
             <ChevronRight className="w-4 h-4 mx-2" />
@@ -190,21 +190,21 @@ export default function ProductDetailsPage() {
               {product?.category ?? 'Products'}
             </a>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="text-gray-900">{product?.name}</span>
+            <span className="text-gray-900">{ product?.name?.length < 20 ? product?.name : product?.name?.slice(0, 20) + '...'}</span>
           </div>
         </div>
       </div>
 
       {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Images */}
           <div className="space-y-4">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <img
                 src={imagesArray?.[selectedImage] ?? '/placeholder.png'}
                 alt={product?.name ?? 'Product image'}
-                className="w-full h-96 object-cover"
+                className="w-full h-96 object-contain"
               />
             </div>
 
@@ -216,7 +216,7 @@ export default function ProductDetailsPage() {
                     onClick={() => setSelectedImage(idx)}
                     className={`border-2 rounded-lg overflow-hidden ${selectedImage === idx ? 'border-blue-600' : 'border-gray-200'}`}
                   >
-                    <img src={img} alt={`View ${idx + 1}`} className="w-full h-20 object-cover" />
+                    <img src={img} alt={`View ${idx + 1}`} className="w-full h-20 object-contain" />
                   </button>
                 ))}
               </div>
@@ -235,25 +235,12 @@ export default function ProductDetailsPage() {
 
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{product?.name}</h1>
 
-              {/* Rating */}
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => {
-                    const ratingValue = Math.round(product?.rating ?? product?.calculatedRating ?? 0)
-                    return <Star key={i} className={`w-5 h-5 ${i < ratingValue ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-                  })}
-                </div>
-                <span className="text-sm text-gray-600">
-                  {(product?.rating ?? product?.calculatedRating ?? 0).toFixed?.(1)} ({product?.numReviews ?? 0} reviews)
-                </span>
-              </div>
-
               {/* Price */}
               <div className="flex items-baseline space-x-3 mb-4">
-                <span className="text-4xl font-bold text-gray-900">₹{(displayPrice ?? 0).toFixed(2)}</span>
+                <span className="text-4xl font-bold text-gray-900">AED {(displayPrice ?? 0).toFixed(2)}</span>
                 {displayOriginal > 0 && (
                   <>
-                    <span className="text-xl text-gray-500 line-through">₹{displayOriginal.toFixed(2)}</span>
+                    <span className="text-xl text-gray-500 line-through">AED {displayOriginal.toFixed(2)}</span>
                     <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
                       Save {discountPct}%
                     </span>
@@ -336,9 +323,8 @@ export default function ProductDetailsPage() {
                   Buy Now
                 </button>
               </div>
-
               {/* Benefits */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid md:hidden grid-cols-2 gap-4">
                 <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                   <Truck className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
@@ -372,8 +358,39 @@ export default function ProductDetailsPage() {
           </div>
         </div>
 
+        <div className="md:grid hidden grid-cols-4 gap-4">
+          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+            <Truck className="w-5 h-5 text-blue-600 mt-1" />
+            <div>
+              <h4 className="font-semibold text-sm text-gray-900">Free Shipping</h4>
+              <p className="text-xs text-gray-600">On orders over $100</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+            <Shield className="w-5 h-5 text-green-600 mt-1" />
+            <div>
+              <h4 className="font-semibold text-sm text-gray-900">Warranty</h4>
+              <p className="text-xs text-gray-600">{product?.warranty?.available ? `${product?.warranty?.duration ?? 0} months` : 'Not available'}</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+            <RotateCcw className="w-5 h-5 text-orange-600 mt-1" />
+            <div>
+              <h4 className="font-semibold text-sm text-gray-900">30-Day Returns</h4>
+              <p className="text-xs text-gray-600">Easy return policy</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+            <Zap className="w-5 h-5 text-purple-600 mt-1" />
+            <div>
+              <h4 className="font-semibold text-sm text-gray-900">Fast Delivery</h4>
+              <p className="text-xs text-gray-600">2-3 business days</p>
+            </div>
+          </div>
+        </div>
+
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-12">
+        <div className="bg-white rounded-lg shadow-md mb-8">
           <div className="border-b">
             <div className="flex space-x-8 px-6">
               {['description', 'specifications'].map((tab) => (

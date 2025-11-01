@@ -3,14 +3,25 @@ import { ShoppingCart, Search, User, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import getUserId from '../utils/getUserId'
+import logo from '../assets/logo.webp'
 
 export default function Header({ cartCount = 0, onSearch, onNavigate }) {
 	const [searchQuery, setSearchQuery] = useState('')
 	const [liveCount, setLiveCount] = useState(cartCount)
 	const [showUserName, setShowUserName] = useState(false)
 	const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User')
+	const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
+	const [isAnimating, setIsAnimating] = useState(false)
 	const navigate = useNavigate()
 	const userId = getUserId()
+
+	const quotes = [
+		"Shop Smart, Live Better",
+		"Quality Products, Affordable Prices",
+		"Your One-Stop Shopping Destination",
+		"Discover Amazing Deals Today",
+		"Where Shopping Meets Convenience"
+	]
 
 	useEffect(() => {
 		if (!userId) return
@@ -46,6 +57,19 @@ export default function Header({ cartCount = 0, onSearch, onNavigate }) {
 		fetchUserName()
 	}, [userId])
 
+	// Quote rotation effect
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setIsAnimating(true)
+			setTimeout(() => {
+				setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)
+				setIsAnimating(false)
+			}, 500)
+		}, 4000)
+
+		return () => clearInterval(interval)
+	}, [])
+
 	const displayCount = liveCount || 0
 
 	const handleSearch = (e) => {
@@ -73,18 +97,22 @@ export default function Header({ cartCount = 0, onSearch, onNavigate }) {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16">
 					<div 
-						className="flex items-center space-x-2 cursor-pointer" 
+						className="flex items-center space-x-2 cursor-pointer flex-shrink-0" 
 						onClick={() => navigate('/home')}
 					>
-						<div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-							<span className="text-white font-bold text-xl">J</span>
-						</div>
-						<h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-							JC Universe
-						</h1>
+						<img className="h-10" src={logo} />
 					</div>
 
-					<div className="flex items-center space-x-4">
+					{/* Animated Quotes - Hidden on small screens */}
+					<div className="hidden md:flex flex-1 items-center justify-center mx-8 overflow-hidden relative h-8">
+						<div className={`transition-all duration-500 ${isAnimating ? 'quote-exit' : 'quote-enter'}`}>
+							<p className="text-gray-600 font-medium whitespace-nowrap">
+								{quotes[currentQuoteIndex]}
+							</p>
+						</div>
+					</div>
+
+					<div className="flex items-center space-x-4 flex-shrink-0">
 
 						<div className="relative">
 							<button 
@@ -134,8 +162,39 @@ export default function Header({ cartCount = 0, onSearch, onNavigate }) {
 						transform: translateY(0);
 					}
 				}
+
+				@keyframes slide-up-out {
+					from {
+						opacity: 1;
+						transform: translateY(0);
+					}
+					to {
+						opacity: 0;
+						transform: translateY(-20px);
+					}
+				}
+
+				@keyframes slide-up-in {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+
 				.animate-fade-in {
 					animation: fade-in 0.3s ease-out;
+				}
+
+				.quote-exit {
+					animation: slide-up-out 0.5s ease-in-out forwards;
+				}
+
+				.quote-enter {
+					animation: slide-up-in 0.5s ease-in-out forwards;
 				}
 			`}</style>
 		</header>

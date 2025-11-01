@@ -85,7 +85,7 @@ const ProductCard = ({ product }) => {
 						'https://via.placeholder.com/300x200?text=No+Image'
 					} 
 					alt={product?.images?.[0]?.alt || product?.name} 
-					className='w-full h-48 object-cover' 
+					className='w-full h-48 object-contain' 
 				/>
 
 				{product?.stock < 10 && product?.stock > 0 && (
