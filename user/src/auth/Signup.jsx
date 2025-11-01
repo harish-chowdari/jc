@@ -28,7 +28,8 @@ const Signup = () => {
             const res = await axios.post("/user-signup", { ...signup });
             const userId = res.data._id;
             localStorage.setItem("userId", userId);
-            navigate(`/home/${userId}`);
+            localStorage.setItem("userName", res?.data?.name);
+            navigate(`/home`);
         } catch (error) {
             console.log(error);
             setErrorMessage( error?.response?.data?.error || "An error occurred while signing up. Please try again.");

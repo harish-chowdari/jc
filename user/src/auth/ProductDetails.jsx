@@ -11,11 +11,13 @@ import {
   Minus,
   ChevronRight,
   Award,
-  Zap
+  Zap,
+  TrendingUp
 } from 'lucide-react'
 import axios from 'axios'
 import { useParams } from 'react-router-dom'
 import getUserId from '../utils/getUserId' // optional helper; fallback to localStorage below
+import Header from '../components/Header'
 
 export default function ProductDetailsPage() {
   const { productId } = useParams()
@@ -58,8 +60,26 @@ export default function ProductDetailsPage() {
       }
     }
 
-    if (productId) fetchProduct()
-  }, [productId])
+    const fetchCart = async () => {
+      if (!userId) return
+      try {
+        const res = await axios.get(`${API}/cart/${userId}`)
+        const cartItems = res?.data?.items || []
+        const found = cartItems.find((item) => item?.productId?._id === productId || item?.productId === productId)
+        if (found) {
+          setInCart(true)
+          setQuantity(found?.quantity || 1)
+        }
+      } catch (err) {
+        console.error('Error fetching cart:', err?.response?.data ?? err?.message)
+      }
+    }
+
+    if (productId) {
+      fetchProduct()
+      fetchCart()
+    }
+  }, [productId, userId])
 
   const imagesArray = Array.isArray(product?.images)
     ? product.images.map((img) => img?.url ?? img) // handle both {url,..} or string entries
@@ -85,12 +105,45 @@ export default function ProductDetailsPage() {
     }
     try {
       const body = { userId, productId: product._id, quantity: quantity || 1 }
-      await axios.post(`${API}/cart`, body)
+      const res = await axios.post(`${API}/cart`, body)
       setInCart(true)
-      alert(`Added ${body.quantity} item(s) to cart`)
+      alert(res?.data?.message || `Added ${body.quantity} item(s) to cart`)
     } catch (err) {
       console.error('Add to cart error:', err?.response?.data ?? err?.message)
       alert('Failed to add to cart')
+    }
+  }
+
+  const handleUpdateCart = async (action) => {
+    if (!userId) {
+      alert('No userId found.')
+      return
+    }
+    if (!product?._id) {
+      alert('Product not loaded yet.')
+      return
+    }
+    try {
+      const newQuantity = action === 'increase' ? quantity + 1 : quantity - 1
+      
+      if (newQuantity <= 0) {
+        // Remove from cart if quantity is 0
+        setInCart(false)
+        setQuantity(1)
+        return
+      }
+
+      const res = await axios.put(`${API}/cart/update`, {
+        userId,
+        productId: product._id,
+        quantity: newQuantity
+      })
+      
+      setQuantity(newQuantity)
+      alert(res?.data?.message || 'Cart updated successfully!')
+    } catch (err) {
+      console.error('Cart update error:', err?.response?.data ?? err?.message)
+      alert('Failed to update cart')
     }
   }
 
@@ -125,6 +178,7 @@ export default function ProductDetailsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
+      <Header />
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center text-sm text-gray-600">
@@ -250,11 +304,19 @@ export default function ProductDetailsPage() {
               <div className="flex items-center space-x-4 mb-6">
                 <span className="text-gray-700 font-semibold">Quantity:</span>
                 <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button onClick={handleDecrease} className="px-4 py-2 hover:bg-gray-100 transition" disabled={quantity <= 1}>
+                  <button 
+                    onClick={() => inCart ? handleUpdateCart('decrease') : handleDecrease()} 
+                    className="px-4 py-2 hover:bg-gray-100 transition" 
+                    disabled={quantity <= 1}
+                  >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="px-6 py-2 font-semibold border-x border-gray-300">{quantity}</span>
-                  <button onClick={handleIncrease} className="px-4 py-2 hover:bg-gray-100 transition" disabled={quantity >= (product?.stock ?? 0)}>
+                  <button 
+                    onClick={() => inCart ? handleUpdateCart('increase') : handleIncrease()} 
+                    className="px-4 py-2 hover:bg-gray-100 transition" 
+                    disabled={quantity >= (product?.stock ?? 0)}
+                  >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
@@ -263,11 +325,11 @@ export default function ProductDetailsPage() {
               <div className="flex space-x-4 mb-6">
                 <button
                   onClick={handleAddToCart}
-                  disabled={(product?.stock ?? 0) === 0}
+                  disabled={(product?.stock ?? 0) === 0 || inCart}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  {inCart ? 'Added to Cart' : 'Add to Cart'}
+                  {inCart ? 'In Cart' : 'Add to Cart'}
                 </button>
 
                 <button className="px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-lg transition">
@@ -314,7 +376,7 @@ export default function ProductDetailsPage() {
         <div className="bg-white rounded-lg shadow-md mb-12">
           <div className="border-b">
             <div className="flex space-x-8 px-6">
-              {['description', 'specifications', 'reviews'].map((tab) => (
+              {['description', 'specifications'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -425,53 +487,6 @@ export default function ProductDetailsPage() {
                   )}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Related products - keep simple */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(product?.relatedProducts ?? []).length > 0 ? (
-              product.relatedProducts.map((item) => (
-                <div key={item?._id ?? item?.id} className="bg-white rounded-lg shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden">
-                  <div className="h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center text-6xl">
-                    <img src={item?.images?.[0]?.url ?? item?.images?.[0] ?? '/placeholder.png'} alt={item?.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">{item?.name}</h3>
-                    <div className="flex items-center mb-2">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                      <span className="ml-1 text-sm text-gray-600">{item?.rating ?? 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">₹{(item?.price ?? 0).toFixed(2)}</span>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition">
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              // fallback simple placeholders (first 4 images of same product as examples)
-              imagesArray.slice(0, 4).map((img, idx) => (
-                <div key={idx} className="bg-white rounded-lg shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden">
-                  <div className="h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center text-6xl">
-                    <img src={img} alt={`related-${idx}`} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">Related item</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">₹0.00</span>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition">
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
             )}
           </div>
         </div>

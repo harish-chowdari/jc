@@ -9,6 +9,7 @@ const ROUTES = {
     VIEW_PRODUCTS: '/products',
     VIEW_PRODUCT_DETAILS: '/product-details/:productId',
     CART: '/cart',
+    SEARCH: '/search'
 }
 
 export default ROUTES

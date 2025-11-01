@@ -5,14 +5,19 @@ import axios from 'axios'
 import getUserId from '../utils/getUserId'
 
 const ProductCard = ({ product }) => {
-
 	const navigate = useNavigate()
-
 	const userId = getUserId()
 	const [quantity, setQuantity] = useState(0)
 	const [loading, setLoading] = useState(false)
 
-	
+	const formatAED = (value) => {
+		if (value === null || value === undefined || Number.isNaN(Number(value))) return ''
+		try {
+			return new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(Number(value))
+		} catch (err) {
+			return `د.إ ${Number(value).toFixed(2)}`
+		}
+	}
 
 	const fetchCart = async () => {
 		try {
@@ -25,7 +30,8 @@ const ProductCard = ({ product }) => {
 		}
 	}
 
-	const addToCart = async () => {
+	const addToCart = async (e) => {
+		e.stopPropagation()
 		try {
 			setLoading(true)
 			const res = await axios.post('http://localhost:5000/api/cart', {
@@ -43,17 +49,17 @@ const ProductCard = ({ product }) => {
 		}
 	}
 
-	const updateCart = async (action) => {
+	const updateCart = async (e, action) => {
+		e.stopPropagation()
 		try {
 			setLoading(true)
-			const res = await axios.put('http://localhost:5000/api/cart/update', {
+			const newQuantity = action === 'increase' ? quantity + 1 : quantity - 1
+			await axios.put('http://localhost:5000/api/cart/update', {
 				userId,
 				productId: product?._id,
-				quantity: action === 'increase' ? quantity + 1 : quantity - 1
+				quantity: newQuantity
 			})
-			if (action === 'increase') setQuantity((q) => q + 1)
-			if (action === 'decrease') setQuantity((q) => (q > 1 ? q - 1 : 0))
-			alert(res?.data?.message || 'Cart updated successfully!')
+			setQuantity(newQuantity)
 		} catch (error) {
 			console.error('Cart update failed:', error?.response?.data || error?.message)
 			alert('Failed to update cart.')
@@ -67,9 +73,20 @@ const ProductCard = ({ product }) => {
 	}, [userId, product?._id])
 
 	return (
-		<div onClick={() => navigate(`/product-details/${product?._id}`)} className='bg-white rounded-lg shadow-md hover:shadow-xl transition transform hover:-translate-y-2 cursor-pointer overflow-hidden'>
+		<div 
+			onClick={() => navigate(`/product-details/${product?._id}`)} 
+			className='bg-white rounded-lg shadow-md hover:shadow-xl transition transform hover:-translate-y-2 cursor-pointer overflow-hidden'
+		>
 			<div className='relative'>
-				<img src={product?.images[0]?.url} alt={product?.name} className='w-full h-48 object-cover' />
+				<img 
+					src={
+						product?.images?.[0]?.url || 
+						(typeof product?.images?.[0] === 'string' ? product?.images?.[0] : '') ||
+						'https://via.placeholder.com/300x200?text=No+Image'
+					} 
+					alt={product?.images?.[0]?.alt || product?.name} 
+					className='w-full h-48 object-cover' 
+				/>
 
 				{product?.stock < 10 && product?.stock > 0 && (
 					<div className='absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-lg text-xs font-bold'>
@@ -90,24 +107,19 @@ const ProductCard = ({ product }) => {
 					{product?.brand} • {product?.category}
 				</p>
 
-				<div className='flex items-center mb-2'>
-					<div className='flex items-center'>
-						<Star className='w-4 h-4 text-yellow-400 fill-current' />
-						<span className='ml-1 text-sm text-gray-600'>{product?.rating?.toFixed?.(1)}</span>
-					</div>
-					<span className='ml-2 text-sm text-gray-500'>({product?.numReviews} reviews)</span>
-				</div>
-
 				<div className='flex items-center justify-between'>
 					<div>
-						<span className='text-lg font-bold text-gray-800'>₹{product?.price?.toFixed?.(2)}</span>
+						<span className='text-lg font-bold text-gray-800'>{formatAED(product?.price)}</span>
 					</div>
 
 					{quantity > 0 ? (
-						<div className='flex items-center space-x-2'>
+						<div 
+							className='flex items-center space-x-2'
+							onClick={(e) => e.stopPropagation()}
+						>
 							<button
 								disabled={loading}
-								onClick={() => updateCart('decrease')}
+								onClick={(e) => updateCart(e, 'decrease')}
 								className='bg-gray-200 hover:bg-gray-300 text-gray-800 p-2 rounded-lg transition disabled:opacity-50'
 							>
 								<Minus className='w-4 h-4' />
@@ -115,7 +127,7 @@ const ProductCard = ({ product }) => {
 							<span className='text-sm font-semibold'>{quantity}</span>
 							<button
 								disabled={loading}
-								onClick={() => updateCart('increase')}
+								onClick={(e) => updateCart(e, 'increase')}
 								className='bg-gray-200 hover:bg-gray-300 text-gray-800 p-2 rounded-lg transition disabled:opacity-50'
 							>
 								<Plus className='w-4 h-4' />

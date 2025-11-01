@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Menu, X, Heart, User, ChevronRight, Zap, Shield, Truck, Laptop, Smartphone, Headphones, Watch, Camera, Gamepad, Loader, TrendingUp } from 'lucide-react';
-import ProductCard from '../components/ProductCard'; // Import the ProductCard component
+import { ShoppingCart, Search, Menu, X, Heart, User, ChevronRight, Zap, Shield, Truck, Laptop, Smartphone, Headphones, Watch, Camera, Gamepad, Loader, TrendingUp, Package, CreditCard, Clock, Star, ArrowRight, CheckCircle, Sparkles } from 'lucide-react';
+import ProductCard from '../components/ProductCard';
+import getUserId from '../utils/getUserId';
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function EcommerceHomepage() {
+
+  const userId = getUserId();
+  const navigate = useNavigate();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(3);
   const [searchQuery, setSearchQuery] = useState('');
@@ -10,9 +18,10 @@ export default function EcommerceHomepage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // API Base URL - Update this to your backend URL
-  const API_BASE_URL = 'http://localhost:5000/api'; // Change to your actual API URL
+  const API_BASE_URL = 'http://localhost:5000/api';
 
   const heroSlides = [
     {
@@ -33,12 +42,73 @@ export default function EcommerceHomepage() {
   ];
 
   const categories = [
-    { name: "Laptops", icon: <Laptop className="w-8 h-8" />, color: "bg-blue-500" },
-    { name: "Smartphones", icon: <Smartphone className="w-8 h-8" />, color: "bg-purple-500" },
-    { name: "Audio", icon: <Headphones className="w-8 h-8" />, color: "bg-pink-500" },
-    { name: "Wearables", icon: <Watch className="w-8 h-8" />, color: "bg-green-500" },
-    { name: "Cameras", icon: <Camera className="w-8 h-8" />, color: "bg-orange-500" },
-    { name: "Gaming", icon: <Gamepad className="w-8 h-8" />, color: "bg-red-500" },
+    { name: "Laptops", image: "https://tse3.mm.bing.net/th/id/OIP.E7s9xyTEf7KV97V81H2w7wHaFU?pid=Api&P=0&h=180", color: "bg-blue-500" },
+    { name: "Smartphones", image: "https://tse3.mm.bing.net/th/id/OIP.e943jRQHTUQBM4LXS9w6mgHaHa?pid=Api&P=0&h=180", color: "bg-purple-500" },
+    { name: "Audio", image: "https://tse2.mm.bing.net/th/id/OIP.tgx3GUGc4l85QJ7kNLp4VQHaJk?pid=Api&P=0&h=180", color: "bg-pink-500" },
+    { name: "Wearables", image: "https://tse4.mm.bing.net/th/id/OIP.MDePs4w8n5gkgkZwu7ghowHaHa?pid=Api&P=0&h=180", color: "bg-green-500" },
+    { name: "Cameras", image: "https://tse4.mm.bing.net/th/id/OIP.ps4xWduyiWAwW3pnPcO-_wHaE8?pid=Api&P=0&h=180", color: "bg-orange-500" },
+    { name: "Gaming", image: "https://tse3.mm.bing.net/th/id/OIP.USfxkHuVDu_cAVQGn-3gDwHaHa?pid=Api&P=0&h=180", color: "bg-red-500" },
+  ];
+
+  const features = [
+    {
+      icon: <Truck className="w-6 h-6" />,
+      title: "Free Shipping",
+      description: "On orders over AED 250"
+    },
+    {
+      icon: <Shield className="w-6 h-6" />,
+      title: "Secure Payment",
+      description: "100% protected"
+    },
+    {
+      icon: <Package className="w-6 h-6" />,
+      title: "Easy Returns",
+      description: "30-day return policy"
+    },
+    {
+      icon: <Clock className="w-6 h-6" />,
+      title: "24/7 Support",
+      description: "Always here to help"
+    }
+  ];
+
+  const deals = [
+    {
+      title: "Mega Sale",
+      discount: "50% OFF",
+      category: "Laptops",
+      bg: "bg-gradient-to-br from-blue-500 to-blue-700",
+      image: "https://tse1.mm.bing.net/th/id/OIP.ejs8uD5aFnJaiDLwOO-khQHaE7?pid=Api&P=0&h=180"
+    },
+    {
+      title: "Hot Deals",
+      discount: "30% OFF",
+      category: "Smartphones",
+      bg: "bg-gradient-to-br from-purple-500 to-purple-700",
+      image: "https://tse4.mm.bing.net/th/id/OIP.EKV8i_Zwq5I2WOggwmXT1AHaEK?pid=Api&P=0&h=180"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      rating: 5,
+      comment: "Amazing products and fast delivery! Highly recommended.",
+      product: "MacBook Pro"
+    },
+    {
+      name: "Michael Chen",
+      rating: 5,
+      comment: "Best prices and excellent customer service.",
+      product: "iPhone 15 Pro"
+    },
+    {
+      name: "Emma Davis",
+      rating: 5,
+      comment: "Great quality and authentic products!",
+      product: "Sony Headphones"
+    }
   ];
 
   // Fetch products from API
@@ -191,190 +261,101 @@ export default function EcommerceHomepage() {
     console.log('Added to cart:', product);
   };
 
+  // Handle category click
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName);
+    navigate('/products', { state: { category: categoryName } });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-medium">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 px-4 text-center text-sm font-medium">
         <Zap className="inline w-4 h-4 mr-2" />
         Flash Sale: Extra 15% Off on Gaming Laptops | Use Code: GAME15
       </div>
 
       {/* Header */}
-      <header className="bg-white shadow-md sticky top-0 z-50">
+      <Header />
+
+      {/* Features Section */}
+      <section className="py-4 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <button 
-                className="lg:hidden mr-3 text-gray-700"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-              <div className="flex items-center space-x-2">
-                <Zap className="w-7 h-7 text-blue-600" />
-                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  TechVault
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <div key={index} className="flex flex-col items-center gap-4 border border-gray-200 p-4 rounded-lg hover:bg-gray-50 transition">
+                <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
+                  {feature.icon}
+                </div>
+                <div className='flex flex-col items-center'>
+                  <h3 className="font-bold text-sm text-gray-900">{feature.title}</h3>
+                  <p className="text-sm text-center text-gray-600">{feature.description}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Search for laptops, phones, headphones..."
-                  className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Icons */}
-            <div className="flex items-center space-x-4">
-              <button className="hidden sm:flex items-center text-gray-700 hover:text-blue-600 transition">
-                <User className="w-6 h-6" />
-              </button>
-              <button className="hidden sm:flex items-center text-gray-700 hover:text-blue-600 transition">
-                <Heart className="w-6 h-6" />
-              </button>
-              <button className="relative text-gray-700 hover:text-blue-600 transition">
-                <ShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              </button>
-            </div>
+            ))}
           </div>
-
-          {/* Mobile Search */}
-          <div className="md:hidden pb-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search electronics..."
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#" className="block text-gray-700 hover:text-blue-600">Categories</a>
-              <a href="#" className="block text-gray-700 hover:text-blue-600">Deals</a>
-              <a href="#" className="block text-gray-700 hover:text-blue-600">New Arrivals</a>
-              <a href="#" className="block text-gray-700 hover:text-blue-600">Best Sellers</a>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* Hero Carousel */}
-      <section className="relative h-96 bg-gradient-to-r overflow-hidden">
-        {heroSlides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 bg-gradient-to-r ${slide.bg} transition-opacity duration-1000 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-              <div className="text-white max-w-2xl">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 animate-fade-in">
-                  {slide.title}
-                </h1>
-                <p className="text-xl sm:text-2xl mb-8 opacity-90">
-                  {slide.subtitle}
-                </p>
-                <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition transform hover:scale-105">
-                  Shop Now <ChevronRight className="inline w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-        
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
-              }`}
-            />
-          ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="bg-white py-8 border-b">
+      {/* Deal Banners */}
+      <section className="py-6 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Truck className="w-6 h-6 text-blue-600" />
+          <div className="grid md:grid-cols-2 gap-6">
+            {deals.map((deal, index) => (
+              <div 
+                key={index}
+                onClick={() => handleCategoryClick(deal.category)}
+                className="relative rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition shadow-xl h-64"
+              >
+                {/* Background Image with Overlay */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${deal.image})` }}
+                >
+                  <div className={`absolute inset-0 ${deal.bg} opacity-80`}></div>
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 p-8 text-white h-full flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-5 h-5" />
+                    <span className="text-sm font-semibold uppercase tracking-wider">{deal.title}</span>
+                  </div>
+                  <h3 className="text-5xl font-bold mb-2">{deal.discount}</h3>
+                  <p className="text-xl mb-6">On All {deal.category}</p>
+                  <button className="bg-white text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition inline-flex items-center gap-2 w-fit">
+                    Shop Now
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Free Shipping</h3>
-                <p className="text-sm text-gray-600">On orders over $100</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-100 p-3 rounded-full">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Warranty Included</h3>
-                <p className="text-sm text-gray-600">2-year protection</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="bg-purple-100 p-3 rounded-full">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Latest Tech</h3>
-                <p className="text-sm text-gray-600">New arrivals weekly</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Zap className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Expert Support</h3>
-                <p className="text-sm text-gray-600">24/7 tech assistance</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8">Shop by Category</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-3">Shop by Category</h2>
+            <p className="text-gray-600 text-lg">Explore our wide range of products</p>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category, index) => (
               <div
                 key={index}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer p-6 text-center"
+                onClick={() => handleCategoryClick(category.name)}
+                className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-md hover:shadow-2xl transition transform hover:-translate-y-2 cursor-pointer p-4 text-center border border-gray-100"
               >
-                <div className={`${category.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-white`}>
-                  {category.icon}
+                <div className="w-20 h-20 overflow-hidden mx-auto mb-4">
+                  <img 
+                    src={category.image} 
+                    alt={category.name}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <h3 className="font-semibold text-gray-800">{category.name}</h3>
+                <h3 className="font-bold text-gray-800">{category.name}</h3>
               </div>
             ))}
           </div>
@@ -382,18 +363,28 @@ export default function EcommerceHomepage() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-12 bg-white">
+      <section className="py-8 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Trending Electronics</h2>
-            <a href="/products" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center">
-              View All <ChevronRight className="w-5 h-5" />
-            </a>
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-xl text-nowrap font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-blue-600" />
+                Trending Products
+              </h2>
+              <p className="text-gray-600">Best sellers this month</p>
+            </div>
+            <button 
+              onClick={() => navigate('/products')}
+              className="text-blue-600 text-nowrap hover:text-blue-700 font-bold flex items-center gap-2 px-2 py-2 bg-white rounded shadow-sm hover:shadow-md transition"
+            >
+              View All 
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
           
           {/* Loading State */}
           {loading && (
-            <div className="flex justify-center items-center py-20">
+            <div className="flex justify-center items-center py-10 bg-white rounded-2xl shadow-sm">
               <Loader className="w-12 h-12 text-blue-600 animate-spin" />
               <span className="ml-3 text-gray-600 text-lg">Loading products...</span>
             </div>
@@ -401,19 +392,20 @@ export default function EcommerceHomepage() {
 
           {/* Error State */}
           {error && !loading && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-              <p className="text-yellow-800 mb-2">⚠️ Could not connect to the server</p>
-              <p className="text-sm text-yellow-600">Showing demo products. Please check your API connection.</p>
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8 text-center">
+              <div className="text-5xl mb-4">⚠️</div>
+              <p className="text-yellow-800 mb-2 text-lg font-semibold">Could not connect to the server</p>
+              <p className="text-sm text-yellow-600 mb-4">Showing demo products. Please check your API connection.</p>
               <button 
                 onClick={fetchProducts}
-                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg"
               >
-                Retry
+                Retry Connection
               </button>
             </div>
           )}
 
-          {/* Products Grid - Using ProductCard Component */}
+          {/* Products Grid */}
           {!loading && products.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.slice(0, 8).map((product) => (
@@ -428,66 +420,47 @@ export default function EcommerceHomepage() {
 
           {/* No Products */}
           {!loading && products.length === 0 && !error && (
-            <div className="text-center py-20">
+            <div className="text-center py-10 bg-white rounded-2xl shadow-sm">
+              <div className="text-6xl mb-4">📦</div>
               <p className="text-gray-600 text-lg">No products available at the moment.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      {/* Customer Testimonials */}
+      <section className="py-7 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Zap className="w-6 h-6 text-blue-400" />
-                <h3 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  TechVault
-                </h3>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Your trusted destination for premium electronics and cutting-edge technology.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Customer Service</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition">Track Order</a></li>
-                <li><a href="#" className="hover:text-white transition">Returns</a></li>
-                <li><a href="#" className="hover:text-white transition">Warranty Info</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Newsletter</h4>
-              <p className="text-sm text-gray-400 mb-3">Get the latest tech deals</p>
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-3 py-2 rounded-l-lg text-gray-900 focus:outline-none"
-                />
-                <button className="bg-blue-600 px-4 py-2 rounded-r-lg hover:bg-blue-700 transition">
-                  Subscribe
-                </button>
-              </div>
-            </div>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-3">What Our Customers Say</h2>
+            <p className="text-gray-600 text-lg">Trusted by thousands of happy customers</p>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2024 TechVault. All rights reserved.</p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 shadow-md hover:shadow-xl transition border border-gray-100">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-4 italic">"{testimonial.comment}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                    {testimonial.name[0]}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{testimonial.name}</p>
+                    <p className="text-sm text-gray-600">Purchased {testimonial.product}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
-}
+};
